@@ -504,6 +504,7 @@
 				var newState = History.createStateObject(data,title,url),
 					newStateHash = History.getHashByState(newState),
 					oldState = History.getState(false),
+					oldStateId = oldState.data.myId,
 					oldStateHash = History.getHashByState(oldState),
 					html4Hash = History.getHash();
 
@@ -529,6 +530,9 @@
 					//History.debug('History.pushState: update hash', newStateHash, html4Hash);
 					History.setHash(newStateHash,false);
 					return false;
+				}
+				if (oldStateId) {
+					History.Adapter.trigger(window,'destroystate.'+oldStateId);
 				}
 
 				// Update HTML5 State

@@ -1580,6 +1580,32 @@
 			return History;
 		};
 
+                /*
+                 * Push a state with events to handle its initialization and destroy.
+                 **/
+                History.changeState = function(data, title, url, createfn, destroyfn, replace) {
+                  var myId  = Math.random().toString( 16 ).slice( 2, 10 ).replace(':', '\\:');
+                  createfn  = createfn === undefined ? function() {} : createfn;
+                  destroyfn = destroyfn === undefined ? function() {} : destroyfn;
+                  data      = $.extend({myId: myId}, data);
+
+                  History.Adapter.unbind(window,'destroystate.'+myId);
+                  History.Adapter.bind(window,'destroystate.'+myId, function(){
+                    destroyfn();
+                  });
+                  History.Adapter.unbind(window,'statechange.'+myId);
+                  History.Adapter.bind(window,'statechange.'+myId, function(event){
+                    var State = History.getState();
+                    if(State.data.myId == myId) {
+                      createfn();
+                    }
+                  });
+                  if (replace) {
+                    History.replaceState(data, title, url);
+                  } else {
+                    History.pushState(data, title, url);
+                  }
+                };
 
 		// ====================================================================
 		// HTML5 State Support
@@ -1639,6 +1665,8 @@
 				// Ensure
 				stateId = History.Adapter.extractEventData('state',event,extra) || false;
 
+				var previousState   = History.getState(false);
+				var previousStateId = previousState.data.myId;
 				// Fetch State
 				if ( stateId ) {
 					// Vanilla: Back/forward button was used
@@ -1668,6 +1696,8 @@
 					//History.debug('History.onPopState: no change', newState, History.savedStates);
 					History.busy(false);
 					return false;
+				} else if (previousStateId) {
+					History.Adapter.trigger(window,'destroystate.'+previousStateId);
 				}
 
 				// Store the State

@@ -32,6 +32,10 @@
 			jQuery(el).bind(event,callback);
 		},
 
+		unbind: function(el,event){
+			jQuery(el).unbind(event);
+		},
+
 		/**
 		 * History.Adapter.trigger(el,event)
 		 * @param {Element|string} el
